@@ -29,29 +29,48 @@ require File.expand_path(File.dirname(__FILE__) + '/neo')
 #
 # Your goal is to write the score method.
 
-def score(dice)
-  # You need to write this method
-  #--
-  result = 0
-  (1..6).each do |face|
-    count = dice.select { |n| n == face }.size
-    while count > 0
-      if count >= 3
-        result += (face == 1) ? 1000 : 100 * face
-        count -= 3
-      elsif face == 5
-        result += count * 50
-        count = 0
-      elsif face == 1
-        result += count * 100
-        count = 0
-      else
-        count = 0
-      end
-    end
+$dice_scores = {
+   [1,1,1] => 1000,
+   [2,2,2] => 200,
+   [3,3,3] => 300,
+   [4,4,4] => 400,
+   [5,5,5] => 500,
+   [6,6,6] => 600,
+   [1] => 100,
+   [5] => 50,
+}
+
+def tokenize_array(array)
+
+  s = array.sample
+
+  case array.length
+  when 5
+    [[s,s,s],[s],[s]]
+  when 4
+    [[s,s,s],[s]]
+  when 3
+    [[s,s,s]]
+  when 2
+    [[s],[s]]
+  when 1
+    [[s]]
+  else
+    [[]]
   end
-  result
-  #++
+end
+
+def eval_array(tokens_array)
+  tokens_array.map { |token| $dice_scores.fetch(token, 0) }
+end
+
+def score(dice)
+  dice.group_by { |i| i }
+      .values
+      .map { |array| tokenize_array(array) }
+      .map { |array| eval_array(array) }
+      .map(&:sum)
+      .sum
 end
 
 class AboutScoringProject < Neo::Koan
